@@ -16,7 +16,7 @@ def parse_args():
   parser.add_argument('path_to_config', help='Path to a config.py')
   return parser.parse_args()
 
-
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
 def train(config):
   if hasattr(config.train, 'random_seed'):
     np.random.seed(config.train.random_seed)
@@ -129,13 +129,13 @@ def train(config):
       tf.logging.info('Iteration: ' + str(curr_step) + ', Train loss: ' + str(train_loss))
 
     if i % config.train.val_iter == 0:
-      t = time.time()
+      start_time = time.time()
 
       mean_error, mean_accuracy = 0.0, 0.0
 
       current_step = 0
       val_true_labels = []
-      for j in range(val_steps):
+      for _ in range(val_steps):
         current_step, val_predicted_values, val_true_labels, val_error = session.run(
           [global_step, d_predictions, input_labels, error_rate],
           feed_dict={train_mode: False})
@@ -151,7 +151,7 @@ def train(config):
       tf.logging.info('Iteration: ' + str(current_step) + ', GT: ' + val_true_labels[0].decode("utf-8") + ' -- ' +
                       decode(val_predicted_values, r_vocab)[0] + ', Error: ' +
                       str(mean_error) + ', Accuracy: ' + str(mean_accuracy) + ', Time per step: ' +
-                      str((time.time() - t) / val_steps) + ' secs.')
+                      str((time.time() - start_time) / val_steps) + ' secs.')
 
     if ((curr_step % config.train.snap_iter == 0 or curr_step == config.train.steps)
         and config.train.need_to_save_weights):

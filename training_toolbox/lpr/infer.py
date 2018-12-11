@@ -36,7 +36,7 @@ def data_input(height, width, channels_num, filename, batch_size=1):
   image, filename = read_data(height, width, channels_num, files_string_producer, batch_size)
   return image, filename
 
-
+# pylint: disable=too-many-locals, too-many-statements
 def infer(config):
   if hasattr(config.infer, 'random_seed'):
     np.random.seed(config.infer.random_seed)

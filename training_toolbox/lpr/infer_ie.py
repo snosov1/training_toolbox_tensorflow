@@ -30,15 +30,15 @@ def display_license_plate(number, license_plate_img):
   text_width = size[0][0]
   text_height = size[0][1]
 
-  h_, w_, _ = license_plate_img.shape
+  height, width, _ = license_plate_img.shape
   license_plate_img = cv2.copyMakeBorder(license_plate_img, 0, text_height + 10, 0,
-                                         0 if text_width < w_ else text_width - w_,
+                                         0 if text_width < width else text_width - width,
                                          cv2.BORDER_CONSTANT, value=(255, 255, 255))
-  cv2.putText(license_plate_img, number, (0, h_ + text_height + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 2)
+  cv2.putText(license_plate_img, number, (0, height + text_height + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 2)
 
   return license_plate_img
 
-
+# pylint: disable=too-many-locals
 def main():
   log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
   args = build_argparser().parse_args()
@@ -46,7 +46,7 @@ def main():
   _, r_vocab, _ = LPRVocab.create_vocab(cfg.train.train_list_file_path, cfg.eval.file_list_path)
   model_xml = args.model
   model_bin = os.path.splitext(model_xml)[0] + ".bin"
-  log.info("Initializing plugin for {} device...".format(args.device))
+  log.info("Initializing plugin for %s device...", args.device)
   plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
   if args.cpu_extension and 'CPU' in args.device:
     plugin.add_cpu_extension(args.cpu_extension)
@@ -59,8 +59,8 @@ def main():
     supported_layers = plugin.get_supported_layers(net)
     not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
     if len(not_supported_layers) != 0:
-      log.error("Following layers are not supported by the plugin for specified device {}:\n {}".
-                format(plugin.device, ', '.join(not_supported_layers)))
+      log.error("Following layers are not supported by the plugin for specified device %s:\n %s",
+                plugin.device, ', '.join(not_supported_layers))
       log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
                 "or --cpu_extension command line argument")
       sys.exit(1)
@@ -71,7 +71,7 @@ def main():
   log.info("Loading IR to the plugin...")
   exec_net = plugin.load(network=net, num_requests=2)
   # Read and pre-process input image
-  n, c, h, w = net.inputs[input_blob].shape
+  n_batch, channels, height, width = net.inputs[input_blob].shape
   del net
 
   cur_request_id = 0
@@ -80,16 +80,16 @@ def main():
     img_to_display = frame.copy()
 
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    in_frame = cv2.resize(frame, (w, h))
+    in_frame = cv2.resize(frame, (width, height))
     in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
-    in_frame = in_frame.reshape((n, c, h, w))
+    in_frame = in_frame.reshape((n_batch, channels, height, width))
 
     exec_net.start_async(request_id=cur_request_id, inputs={input_blob: in_frame})
     if exec_net.requests[cur_request_id].wait(-1) == 0:
 
       # Parse detection results of the current request
-      lp = exec_net.requests[cur_request_id].outputs[out_blob]
-      lp_number = decode_ie_output(lp, r_vocab)
+      lp_code = exec_net.requests[cur_request_id].outputs[out_blob]
+      lp_number = decode_ie_output(lp_code, r_vocab)
       img_to_display = display_license_plate(lp_number, img_to_display)
       cv2.imshow('License Plate', img_to_display)
       key = cv2.waitKey(0)
