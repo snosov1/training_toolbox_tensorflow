@@ -3,8 +3,6 @@ import os
 import sys
 from os import path
 
-import sys
-
 import cv2
 import numpy as np
 import tensorflow as tf
@@ -173,9 +171,9 @@ def download_archive_and_extract(url, target_dir):
 
   try:
     resp = urlopen(url)
-  except urllib.error.HTTPError as e:
+  except urllib.error.HTTPError as exception:
     tf.logging.error('Not found: {}'.format(url))
-    raise e
+    raise exception
 
   zipfile = ZipFile(BytesIO(resp.read()))
   zipfile.extractall(target_dir)
