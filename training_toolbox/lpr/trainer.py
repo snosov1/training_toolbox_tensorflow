@@ -7,7 +7,7 @@ from lpr.networks.lprnet import LPRNet
 from spatial_transformer import transformer
 
 
-class InputData(object):
+class InputData:
   # pylint: disable=too-many-arguments
   def __init__(self, batch_size, input_shape, file_list_path,
                apply_basic_aug=False, apply_stn_aug=True, apply_blur_aug=False):
@@ -124,7 +124,7 @@ def inference(rnn_cells_num, input, num_classes):
   return inf
 
 
-class CTCUtils(object):
+class CTCUtils:
   vocab = {}
   r_vocab = {}
 
@@ -203,7 +203,7 @@ def decode_ie_output(vals, r_vocab):
   return decoded_number
 
 
-class LPRVocab(object):
+class LPRVocab:
   @staticmethod
   def create_vocab(train_list_path, val_list_path, use_h_concat=False, use_oi_concat=False):
     [vocab, r_vocab, num_classes] = LPRVocab._create_standard_vocabs(train_list_path, val_list_path)

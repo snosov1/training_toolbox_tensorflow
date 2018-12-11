@@ -2,7 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
 
-class LPRNet(object):
+class LPRNet:
   # Function for generation characters range
 
   # Fire block

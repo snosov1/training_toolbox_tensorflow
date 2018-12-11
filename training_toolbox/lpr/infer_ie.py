@@ -58,7 +58,7 @@ def main():
   if "CPU" in plugin.device:
     supported_layers = plugin.get_supported_layers(net)
     not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
-    if len(not_supported_layers) != 0:
+    if not_supported_layers:
       log.error("Following layers are not supported by the plugin for specified device %s:\n %s",
                 plugin.device, ', '.join(not_supported_layers))
       log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
